@@ -224,8 +224,8 @@ async def do(semaphore, private_key, auth_token, nstChannelID, nstPassword):
                 break
 
 
-async def main(filePath, nstChannelID, nstPassword):
-    semaphore = asyncio.Semaphore(10)
+async def main(filePath, nstChannelID, nstPassword, tread):
+    semaphore = asyncio.Semaphore(int(tread))
     task = []
     with open(filePath, 'r') as f:
         for account_line in f:
@@ -239,4 +239,5 @@ if __name__ == '__main__':
     _filePath = input("请输入账户文件路径：").strip()
     _nstChannelID = input("请输入nstproxy通道ID：").strip()
     _nstPassword = input("请输入nstproxy通道密码：").strip()
-    asyncio.run(main(_filePath, _nstChannelID, _nstPassword))
+    _tread = input("请输入并发数：").strip()
+    asyncio.run(main(_filePath, _nstChannelID, _nstPassword, _tread))

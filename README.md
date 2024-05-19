@@ -5,6 +5,9 @@
 
 # 任务列表
 
+如果需要新脚本，直接联系tg: [fooyao](https://t.me/fooyao),如果限制双向，联系: [双向机器人](https://t.me/hddcmbot)
+另外也可以直接提 [issue](https://github.com/Fooyao/web3Task/issues/new)
+
 1.[Macaron](https://www.macaron.xyz/#/airdrop)
 - 注册绑定推特，完成任务
 - 导入地址----私钥----推特auth_token
