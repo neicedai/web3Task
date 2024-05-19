@@ -5,8 +5,9 @@
 - 验证码识别平台：[capsolver](https://dashboard.capsolver.com/passport/register?inviteCode=-6bvop_IGgaT)
 
 # 任务列表
-- 如果需要新脚本，直接联系tg: [fooyao](https://t.me/fooyao)
-- 如果限制双向，联系: [双向机器人](https://t.me/hddcmbot)
+- 更新通知介绍频道：[@hddinfo](https://t.me/hddinfo)
+- 如果需要新脚本，直接联系tg: [@fooyao](https://t.me/fooyao)
+- 如果限制双向，联系: [@hddcmbot](https://t.me/hddcmbot)
 - 另外也可以直接提 [issue](https://github.com/Fooyao/web3Task/issues/new)
 
 1.[Macaron](https://www.macaron.xyz/#/airdrop)
