@@ -23,3 +23,6 @@
 
 4.[DOP](https://claim.dop.org/)
 - 领取空投
+
+5.[optopia](https://www.optopia.ai/voyage?inviter=fooyao158)
+- 注册绑定推特,绑定Discord，完成任务
