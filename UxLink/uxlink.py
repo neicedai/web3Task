@@ -112,6 +112,9 @@ class UXLink:
                 signed_tx = self.account.sign_transaction(tx)
                 tx_hash = await self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
                 logger.info(f"[{self.account.address}] Mint交易hash: {tx_hash.hex()}")
+                receipt = await self.w3.eth.wait_for_transaction_receipt(tx_hash)
+                if receipt.status == 1:
+                    return await self.callback(transId, tx_hash.hex())
                 return True
             elif res.json()['code'] == 6001015:
                 logger.error(f"[{self.account.address}] 今日已签到")
@@ -124,6 +127,21 @@ class UXLink:
                 logger.error(f"[{self.account.address}] 已经签到过了")
                 return True
             logger.error(f"[{self.account.address}] 获取Mint信息失败：{e}")
+            return False
+
+    async def callback(self, transId, tx_hash):
+        try:
+            json_data = {
+                'transId': transId,
+                'transactionInfo': tx_hash
+            }
+            res = await self.client.post("https://api.uxlink.io/activity/uxcheckin/third/wallet/callback", json=json_data)
+            if res.json()['success']:
+                logger.success(f"[{self.account.address}] 回调成功")
+                return True
+            return False
+        except Exception as e:
+            logger.error(f"[{self.account.address}] Mint回调失败：{e}")
             return False
 
 
