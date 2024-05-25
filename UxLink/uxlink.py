@@ -24,7 +24,7 @@ class UXLink:
         session = ''.join(random.choice(string.digits + string.ascii_letters) for _ in range(10))
         nstproxy = f"http://{nstChannelID}-residential-country_ANY-r_5m-s_{session}:{nstPassword}@gw-us.nstproxy.com:24125"
         proxies = {'all://': nstproxy}
-        self.client = AsyncClient(proxies=proxies, timeout=120)
+        self.client = AsyncClient(proxies=proxies, timeout=120, headers={'x-walletPlatform': 'binance'})
         self.account = self.w3.eth.account.from_key(private_key)
         self.Mint_add = self.w3.to_checksum_address('0x5d6297441ce0b6e68ba979c7144c31b5b80ad49b')
         abi = [{
