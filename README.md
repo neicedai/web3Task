@@ -26,3 +26,6 @@
 
 5.[optopia](https://www.optopia.ai/voyage?inviter=fooyao158)
 - 注册绑定推特,绑定Discord，完成任务
+
+6.[Lingo](https://lingoislands.com/?invite=P66HL)
+- 注册绑定推特和邮箱
