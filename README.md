@@ -17,6 +17,7 @@
 2.[UxLink](https://binance.uxlink.io/)
 - arb链每日签到，领取UXUY代币
 - 每个地址都要放入少量arb链的ETH做gas
+- UxLink2：兑换NFT，自动判断领取500的还是100的
 
 3.[GmNetWork](https://launchpad.gmnetwork.ai/mission?invite_code=LK0U)
 - 注册完成任务 questn任务未处理
