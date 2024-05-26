@@ -30,3 +30,6 @@
 
 6.[Lingo](https://lingoislands.com/?invite=P66HL)
 - 注册绑定推特和邮箱
+
+7.[Tari](https://airdrop.tari.com?referralCode=u71m0Vak3f)
+- 注册绑定推特，完成任务
