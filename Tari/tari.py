@@ -100,11 +100,11 @@ class Twitter:
 
 
 class Tari:
-    def __init__(self, nstproxy_Channel, nstproxy_Password, auth_token, cap_clientKey):
+    def __init__(self, nstproxy_Channel, nstproxy_Password, auth_token, cap_clientKey, referralCode):
         self.session = ''.join(random.choices(string.digits + string.ascii_letters, k=10))
         nstproxy = f"http://{nstproxy_Channel}-residential-country_ANY-r_5m-s_{self.session}:{nstproxy_Password}@gw-us.nstproxy.com:24125"
         self.client = AsyncSession(timeout=120, impersonate="chrome120", proxy=nstproxy)
-        self.gclient = AsyncSession(timeout=120, impersonate="chrome120", proxy=nstproxy)
+        self.referralCode = referralCode
         self.twitter = Twitter(auth_token)
         self.CF = CF(cap_clientKey)
 
@@ -115,7 +115,8 @@ class Tari:
                 return False
             params = {
                 'quest': 'airdrop',
-                'token': cf_token
+                'token': cf_token,
+                'referralCode': self.referralCode
             }
             res = await self.client.get('https://rwa.y.at/auth/twitter', params=params, allow_redirects=False)
             if res.status_code == 302:
@@ -177,24 +178,24 @@ class Tari:
             return False
 
 
-async def do(semaphore, nstproxy_Channel, nstproxy_Password, private_key, _capsolver_clientKey):
+async def do(semaphore, nstproxy_Channel, nstproxy_Password, auth_token, _capsolver_clientKey, referralCode):
     async with semaphore:
         for _ in range(3):
-            if await Tari(nstproxy_Channel, nstproxy_Password, private_key, _capsolver_clientKey).login():
+            if await Tari(nstproxy_Channel, nstproxy_Password, auth_token, _capsolver_clientKey, referralCode).login():
                 break
 
 
-async def main(file_path, semaphore, nstproxy_Channel, nstproxy_Password, _capsolver_clientKey):
+async def main(file_path, semaphore, nstproxy_Channel, nstproxy_Password, _capsolver_clientKey, referralCode):
     semaphore = asyncio.Semaphore(semaphore)
     with open(file_path, 'r') as f:
-        task = [do(semaphore, nstproxy_Channel, nstproxy_Password, account_line, _capsolver_clientKey) for account_line in f]
+        task = [do(semaphore, nstproxy_Channel, nstproxy_Password, account_line, _capsolver_clientKey, referralCode) for account_line in f]
     await asyncio.gather(*task)
 
 if __name__ == '__main__':
-    if __name__ == '__main__':
-        _nstproxy_Channel = input('请输入nstproxy_频道:').strip()
-        _nstproxy_Password = input('请输入nstproxy_密码:').strip()
-        _capsolver_clientKey = input('请输入capsolver_clientKey:').strip()
-        _semaphore = int(input('请输入并发数:').strip())
-        _file_path = input('推特auth_token文件:').strip()
-        asyncio.run(main(_file_path, _semaphore, _nstproxy_Channel, _nstproxy_Password, _capsolver_clientKey))
+    _nstproxy_Channel = input('请输入nstproxy_频道:').strip()
+    _nstproxy_Password = input('请输入nstproxy_密码:').strip()
+    _capsolver_clientKey = input('请输入capsolver_clientKey:').strip()
+    _semaphore = int(input('请输入并发数:').strip())
+    _file_path = input('推特auth_token文件:').strip()
+    _referralCode = input('请输入推荐码:').strip()
+    asyncio.run(main(_file_path, _semaphore, _nstproxy_Channel, _nstproxy_Password, _capsolver_clientKey, _referralCode))

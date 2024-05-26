@@ -1,5 +1,5 @@
 import asyncio, sys, random, string
-from curl_cffi.requests import AsyncSession
+from httpx import AsyncClient as AsyncSession
 from loguru import logger
 
 logger.remove()
@@ -18,7 +18,7 @@ class Twitter:
             "authorization": bearer_token,
         }
         defaulf_cookies = {"auth_token": auth_token}
-        self.Twitter = AsyncSession(headers=defaulf_headers, cookies=defaulf_cookies, timeout=120, impersonate="chrome120")
+        self.Twitter = AsyncSession(headers=defaulf_headers, cookies=defaulf_cookies, timeout=120)
         self.authenticity_token, self.oauth_verifier = None, None
 
     async def get_twitter_token(self, oauth_token):
@@ -86,11 +86,12 @@ class tempmail:
 
 
 class Lingo:
-    def __init__(self, nstproxy_Channel, nstproxy_Password, auth_token):
+    def __init__(self, nstproxy_Channel, nstproxy_Password, auth_token, referralCode):
         self.session = ''.join(random.choices(string.digits + string.ascii_letters, k=10))
         nstproxy = f"http://{nstproxy_Channel}-residential-country_ANY-r_5m-s_{self.session}:{nstproxy_Password}@gw-us.nstproxy.com:24125"
-        self.client = AsyncSession(timeout=120, impersonate="chrome120", proxy=nstproxy)
-        self.gclient = AsyncSession(timeout=120, impersonate="chrome120", proxy=nstproxy)
+        self.client = AsyncSession(timeout=120, proxy=nstproxy)
+        self.gclient = AsyncSession(timeout=120, proxy=nstproxy)
+        self.referralCode = referralCode
         self.twitter = Twitter(auth_token)
         self.tempmail = tempmail()
 
@@ -113,7 +114,7 @@ class Lingo:
             json_data = {
                 "code": self.twitter.oauth_verifier,
                 "state": oauth_token,
-                "referralCode": "P66HL"
+                "referralCode": self.referralCode
             }
             res = await self.client.post('https://lingoislands.com/api/auth/twitter/verify', json=json_data)
             if res.status_code == 201:
@@ -233,13 +234,24 @@ class Lingo:
             return False
 
 
-async def main():
-    nstproxy_Channel = ''
-    nstproxy_Password = ''
-    auth_token = ''
-    LI = Lingo(nstproxy_Channel, nstproxy_Password, auth_token)
-    await LI.login()
+async def do(semaphore, nstproxy_Channel, nstproxy_Password, auth_token, referralCode):
+    async with semaphore:
+        for _ in range(3):
+            if await Lingo(nstproxy_Channel, nstproxy_Password, auth_token, referralCode).login():
+                break
+
+
+async def main(file_path, semaphore, nstproxy_Channel, nstproxy_Password, referralCode):
+    semaphore = asyncio.Semaphore(semaphore)
+    with open(file_path, 'r') as f:
+        task = [do(semaphore, nstproxy_Channel, nstproxy_Password, account_line, referralCode) for account_line in f]
+    await asyncio.gather(*task)
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    _nstproxy_Channel = input('请输入nstproxy_频道:').strip()
+    _nstproxy_Password = input('请输入nstproxy_密码:').strip()
+    _semaphore = int(input('请输入并发数:').strip())
+    _file_path = input('推特auth_token文件:').strip()
+    _referralCode = input('请输入推荐码:').strip()
+    asyncio.run(main(_nstproxy_Channel, _nstproxy_Password, _semaphore, _file_path, _referralCode))
