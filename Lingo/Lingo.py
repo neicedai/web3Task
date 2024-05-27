@@ -237,7 +237,7 @@ class Lingo:
 async def do(semaphore, nstproxy_Channel, nstproxy_Password, auth_token, referralCode):
     async with semaphore:
         for _ in range(3):
-            if await Lingo(nstproxy_Channel, nstproxy_Password, auth_token, referralCode).login():
+            if await Lingo(nstproxy_Channel, nstproxy_Password, auth_token.strip(), referralCode).login():
                 break
 
 

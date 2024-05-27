@@ -181,7 +181,7 @@ class Tari:
 async def do(semaphore, nstproxy_Channel, nstproxy_Password, auth_token, _capsolver_clientKey, referralCode):
     async with semaphore:
         for _ in range(3):
-            if await Tari(nstproxy_Channel, nstproxy_Password, auth_token, _capsolver_clientKey, referralCode).login():
+            if await Tari(nstproxy_Channel, nstproxy_Password, auth_token.strip(), _capsolver_clientKey, referralCode).login():
                 break
 
 
