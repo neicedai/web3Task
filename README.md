@@ -33,3 +33,6 @@
 
 7.[Tari](https://airdrop.tari.com?referralCode=u71m0Vak3f)
 - 注册绑定推特，完成任务
+
+8.[Bridge](https://bridgem.io/airdrop?inviter=lwofuzgbpz0dh3nlxx)
+- 注册绑定推特，完成任务

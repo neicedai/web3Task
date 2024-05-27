@@ -254,4 +254,4 @@ if __name__ == '__main__':
     _semaphore = int(input('请输入并发数:').strip())
     _file_path = input('推特auth_token文件:').strip()
     _referralCode = input('请输入推荐码:').strip()
-    asyncio.run(main(_nstproxy_Channel, _nstproxy_Password, _semaphore, _file_path, _referralCode))
+    asyncio.run(main(_file_path, _semaphore, _nstproxy_Channel, _nstproxy_Password, _referralCode))
