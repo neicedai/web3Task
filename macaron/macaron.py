@@ -2,7 +2,7 @@ import asyncio, sys, loguru, time
 import random
 import string
 
-from curl_cffi.requests import AsyncSession
+from httpx import AsyncClient
 from eth_account.messages import encode_defunct
 from web3 import AsyncWeb3
 
@@ -23,7 +23,7 @@ class Twitter:
             "authorization": bearer_token,
         }
         defaulf_cookies = {"auth_token": auth_token}
-        self.Twitter = AsyncSession(headers=defaulf_headers, cookies=defaulf_cookies, timeout=120, impersonate="chrome120")
+        self.Twitter = AsyncClient(headers=defaulf_headers, cookies=defaulf_cookies, timeout=120)
         self.auth_code = None
 
     async def get_auth_code(self, client_id, state, code_challenge):
@@ -75,13 +75,14 @@ class Twitter:
 
 
 class Macaron:
-    def __init__(self, private_key: str, auth_token: str, nstChannelID: str, nstPassword: str):
+    def __init__(self, private_key: str, auth_token: str, nstChannelID: str, nstPassword: str, invite_code: str):
         session = ''.join(random.choice(string.digits + string.ascii_letters) for _ in range(10))
         nstproxy = f"http://{nstChannelID}-residential-country_ANY-r_5m-s_{session}:{nstPassword}@gw-us.nstproxy.com:24125"
         self.w3 = AsyncWeb3(AsyncWeb3.AsyncHTTPProvider('https://arbitrum.blockpi.network/v1/rpc/public'))
-        self.client = AsyncSession(proxy=nstproxy, timeout=120, impersonate="chrome120")
+        self.client = AsyncClient(proxy=nstproxy, timeout=120)
         self.account = self.w3.eth.account.from_key(private_key)
         self.twitter = Twitter(auth_token)
+        self.invite_code = invite_code
 
     async def login(self):
         try:
@@ -98,13 +99,25 @@ class Macaron:
                 jwt_token = res.json()['jwt_token']
                 self.client.headers.update({"Authorization": f"Bearer {jwt_token}"})
                 logger.success(f"[{self.account.address}] 登录成功")
-                return await self.task()
+                return await self.bindCode()
             if res.status_code == 404:
                 return await self.getAuthUrl()
             logger.error(f"[{self.account.address}] 登录失败")
             return False
         except Exception as e:
             logger.error(f"[{self.account.address}] 登录失败：{e}")
+            return False
+
+    async def bindCode(self):
+        try:
+            json_data = {"invite_code": self.invite_code}
+            res = await self.client.post(f"https://api.macaron.xyz/users/invite/bind", json=json_data)
+            if res.status_code == 200 and 'invite_name' in res.text:
+                return self.task()
+            logger.error(f"[{self.account.address}] 绑定邀请码失败")
+            return False
+        except Exception as e:
+            logger.error(f"[{self.account.address}] 绑定邀请码失败：{e}")
             return False
 
     async def getAuthUrl(self):
@@ -116,7 +129,6 @@ class Macaron:
                 'signature': signature['signature'].hex(),
             }
             res = await self.client.get("https://info-api.macaron.xyz/twitter/auth_url", params=params)
-            print(res.json())
             if res.status_code == 200 and res.json()['statusCode'] == 200:
                 auth_url = res.json()['data']['auth_url'] + "&"
                 state = auth_url.split("state=")[1].split("&")[0]
@@ -137,7 +149,7 @@ class Macaron:
                 'state': state,
                 'code': self.twitter.auth_code,
             }
-            res = await self.client.get("https://info-api.macaron.xyz/twitter/callback", params=params, allow_redirects=False)
+            res = await self.client.get("https://info-api.macaron.xyz/twitter/callback", params=params, follow_redirects=False)
             if res.status_code == 302:
                 Location = res.headers['Location']
                 if Location == 'https://twitter.com/macarondex':
@@ -155,7 +167,7 @@ class Macaron:
                 jwt_token = res.json()['data']['jwt_token']
                 self.client.headers.update({"Authorization": f"Bearer {jwt_token}"})
                 logger.success(f"[{self.account.address}] 绑定推特成功")
-                return await self.task()
+                return await self.bindCode()
             elif res.json()['statusCode'] == 401:
                 await asyncio.sleep(5)
                 return await self.verify()
@@ -217,20 +229,20 @@ class Macaron:
             return False
 
 
-async def do(semaphore, private_key, auth_token, nstChannelID, nstPassword):
+async def do(semaphore, private_key, auth_token, nstChannelID, nstPassword, inviteCode):
     async with semaphore:
         for _ in range(3):
-            if await Macaron(private_key, auth_token, nstChannelID, nstPassword).login():
+            if await Macaron(private_key, auth_token, nstChannelID, nstPassword, inviteCode).login():
                 break
 
 
-async def main(filePath, nstChannelID, nstPassword, tread):
+async def main(filePath, nstChannelID, nstPassword, tread, inviteCode):
     semaphore = asyncio.Semaphore(int(tread))
     task = []
     with open(filePath, 'r') as f:
         for account_line in f:
             account_line = account_line.strip().split('----')
-            task.append(do(semaphore, account_line[1].strip(), account_line[2].strip(), nstChannelID, nstPassword))
+            task.append(do(semaphore, account_line[1].strip(), account_line[2].strip(), nstChannelID, nstPassword, inviteCode))
 
     await asyncio.gather(*task)
 
@@ -240,4 +252,5 @@ if __name__ == '__main__':
     _nstChannelID = input("请输入nstproxy通道ID：").strip()
     _nstPassword = input("请输入nstproxy通道密码：").strip()
     _tread = input("请输入并发数：").strip()
-    asyncio.run(main(_filePath, _nstChannelID, _nstPassword, _tread))
+    _inviteCode = input("请输入邀请码：").strip()
+    asyncio.run(main(_filePath, _nstChannelID, _nstPassword, _tread, _inviteCode))

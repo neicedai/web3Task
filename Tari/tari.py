@@ -1,5 +1,5 @@
 import asyncio, sys, random, string
-from curl_cffi.requests import AsyncSession
+from httpx import AsyncClient
 from loguru import logger
 
 logger.remove()
@@ -8,7 +8,7 @@ logger.add(sys.stdout, colorize=True, format="<g>{time:HH:mm:ss:SSS}</g> | <leve
 
 class CF:
     def __init__(self, clientKey):
-        self.http = AsyncSession(timeout=120, impersonate="chrome120")
+        self.http = AsyncClient(timeout=120)
         self.clientKey = clientKey
         self.taskId = None
 
@@ -65,7 +65,7 @@ class Twitter:
             "authorization": bearer_token,
         }
         defaulf_cookies = {"auth_token": auth_token}
-        self.Twitter = AsyncSession(headers=defaulf_headers, cookies=defaulf_cookies, timeout=120, impersonate="chrome120")
+        self.Twitter = AsyncClient(headers=defaulf_headers, cookies=defaulf_cookies, timeout=120)
         self.authenticity_token, self.oauth_verifier = None, None
 
     async def get_twitter_token(self, oauth_token):
@@ -103,7 +103,7 @@ class Tari:
     def __init__(self, nstproxy_Channel, nstproxy_Password, auth_token, cap_clientKey, referralCode):
         self.session = ''.join(random.choices(string.digits + string.ascii_letters, k=10))
         nstproxy = f"http://{nstproxy_Channel}-residential-country_ANY-r_5m-s_{self.session}:{nstproxy_Password}@gw-us.nstproxy.com:24125"
-        self.client = AsyncSession(timeout=120, impersonate="chrome120", proxy=nstproxy)
+        self.client = AsyncClient(timeout=120, proxy=nstproxy)
         self.referralCode = referralCode
         self.twitter = Twitter(auth_token)
         self.CF = CF(cap_clientKey)
@@ -118,7 +118,7 @@ class Tari:
                 'token': cf_token,
                 'referralCode': self.referralCode
             }
-            res = await self.client.get('https://rwa.y.at/auth/twitter', params=params, allow_redirects=False)
+            res = await self.client.get('https://rwa.y.at/auth/twitter', params=params, follow_redirects=False)
             if res.status_code == 302:
                 Location = res.headers['Location'] + '&'
                 if 'oauth_token' in Location:
@@ -138,7 +138,10 @@ class Tari:
                 'oauth_token': oauth_token,
                 'oauth_verifier': self.twitter.oauth_verifier
             }
-            res = await self.client.get('https://rwa.y.at/auth/twitter/callback', params=params, allow_redirects=False)
+            headers = {
+                'Referer': f'https://api.twitter.com/'
+            }
+            res = await self.client.get('https://rwa.y.at/auth/twitter/callback', params=params, headers=headers, follow_redirects=False)
             if res.status_code == 302:
                 location = res.headers['Location']
                 token = location.split('token=')[1].split('&')[0]
