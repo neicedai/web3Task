@@ -36,3 +36,6 @@
 
 8.[Bridge](https://bridgem.io/airdrop?inviter=lwofuzgbpz0dh3nlxx)
 - 注册绑定推特，完成任务
+
+9.[Lava](https://points.lavanet.xyz/)
+- 绑定推特
