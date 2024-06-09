@@ -1,7 +1,6 @@
 import asyncio, sys, random, string
-
 from eth_account.messages import encode_defunct
-from httpx import AsyncClient as AsyncSession
+from curl_cffi.requests import AsyncSession
 from loguru import logger
 from web3 import AsyncWeb3
 
@@ -21,7 +20,7 @@ class Twitter:
             "authorization": bearer_token,
         }
         defaulf_cookies = {"auth_token": auth_token}
-        self.Twitter = AsyncSession(headers=defaulf_headers, cookies=defaulf_cookies, timeout=120)
+        self.Twitter = AsyncSession(headers=defaulf_headers, cookies=defaulf_cookies, timeout=120, impersonate="chrome120")
         self.authenticity_token, self.oauth_verifier = None, None
 
     async def get_twitter_token(self, oauth_token):
@@ -63,7 +62,7 @@ class Lava:
     def __init__(self, nstproxy_Channel, nstproxy_Password, auth_token, private_key):
         self.session = ''.join(random.choices(string.digits + string.ascii_letters, k=10))
         nstproxy = f"http://{nstproxy_Channel}-residential-country_ANY-r_5m-s_{self.session}:{nstproxy_Password}@gw-us.nstproxy.com:24125"
-        self.client = AsyncSession(timeout=120, proxy=nstproxy)
+        self.client = AsyncSession(timeout=120, proxy=nstproxy, impersonate="chrome120")
         self.w3 = AsyncWeb3(AsyncWeb3.AsyncHTTPProvider('https://rpc.ankr.com/arbitrum'))
         self.account = self.w3.eth.account.from_key(private_key)
         self.twitter = Twitter(auth_token)
@@ -124,7 +123,7 @@ class Lava:
 
     async def bind_twitter(self):
         try:
-            res = await self.client.get('https://points-api.lavanet.xyz/accounts/twitter/login/', follow_redirects=False)
+            res = await self.client.get('https://points-api.lavanet.xyz/accounts/twitter/login/', allow_redirects=False)
             if res.status_code == 302:
                 location = res.headers['Location']
                 oauth_token = location.split('oauth_token=')[1].split('&')[0]
@@ -142,7 +141,7 @@ class Lava:
                 'oauth_token': oauth_token,
                 'oauth_verifier': self.twitter.oauth_verifier
             }
-            res = await self.client.get('https://points-api.lavanet.xyz/accounts/twitter/login/callback/', params=params, follow_redirects=False)
+            res = await self.client.get('https://points-api.lavanet.xyz/accounts/twitter/login/callback/', params=params, allow_redirects=False)
             if res.status_code == 302 and res.headers['Location'] == '/api/v4/ok':
                 logger.success(f'{self.account.address} 绑定推特成功')
                 return True
