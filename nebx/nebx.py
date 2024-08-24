@@ -2,7 +2,9 @@ import asyncio, sys
 import json
 import random
 import time
+
 from curl_cffi.requests import AsyncSession
+
 from web3 import AsyncWeb3
 from loguru import logger
 from Crypto.Cipher import AES
@@ -189,11 +191,25 @@ class Nebx:
                 resdata = json.loads(self.decode(res.text))
                 score = resdata['score']
                 logger.success(f'{self.account.address}  积分{score}')
-                return True
-            logger.error(f'{self.account.address}  登录失效')
+                return await self.checkA()
+            logger.error(f'{self.account.address}  检测积分失败')
             return False
         except Exception as e:
-            logger.error(f'{self.account.address}  登录失效异常：{e}')
+            logger.error(f'{self.account.address}  登检测积分异常：{e}')
+            return False
+
+    async def checkA(self):
+        try:
+            uuid = int(time.time() * 1000)
+            info = {"uuid": uuid}
+            info = json.dumps(info, separators=(',', ':'))
+            res = await self.client.post('https://apiv1.nebx.io/user/check_award', data=f'sign={self.encode(info)}')
+            if res.status_code == 200:
+                return True
+            logger.error(f'{self.account.address}  领取积分失败')
+            return False
+        except Exception as e:
+            logger.error(f'{self.account.address}  领取积分异常：{e}')
             return False
 
 
