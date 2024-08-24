@@ -106,7 +106,7 @@ class Twitter:
 
 
 class Nebx:
-    def __init__(self, private_key, auth_token, inviteCode):
+    def __init__(self, auth_token, inviteCode):
         RPC_list = [
             'https://arbitrum.llamarpc.com', 'https://arb1.arbitrum.io/rpc', 'https://rpc.ankr.com/arbitrum',
             'https://1rpc.io/arb', 'https://arb-pokt.nodies.app', 'https://arbitrum.blockpi.network/v1/rpc/public',
@@ -120,9 +120,8 @@ class Nebx:
             "Referer": "https://nebx.io/"
         }
         self.client = AsyncSession(timeout=120, headers=headers, impersonate="chrome120")
-        self.account = self.w3.eth.account.from_key(private_key)
         self.Twitter = Twitter(auth_token)
-        self.inviteCode = inviteCode
+        self.auth_token, self.inviteCode = auth_token, inviteCode
 
     def encode(self, info):
         encodeKey = self.client.headers.get('Authorization').split('-')[0].replace('Bearer ', '')[:16]
@@ -151,12 +150,12 @@ class Nebx:
                 state = resdata['url'].split('state=')[1].split('&')[0]
                 code_challenge = resdata['url'].split('code_challenge=')[1].split('&')[0]
                 if await self.Twitter.twitter_authorize(clientId, state, code_challenge):
-                    logger.success(f'{self.account.address}  推特授权成功')
+                    logger.success(f'{self.auth_token}  推特授权成功')
                     return await self.login(uuid, clientId, state)
-            logger.error(f'{self.account.address}  推特授权失败')
+            logger.error(f'{self.auth_token}  推特授权失败')
             return False
         except Exception as e:
-            logger.error(f'{self.account.address}  推特授权异常：{e}')
+            logger.error(f'{self.auth_token}  推特授权异常：{e}')
             return False
 
     async def login(self, uuid, clientId, state):
@@ -175,10 +174,10 @@ class Nebx:
                 if 'token' in resdata:
                     self.client.headers.update({"Authorization": f"Bearer {resdata['token']}"})
                     return await self.check()
-            logger.error(f'{self.account.address}  登录失败')
+            logger.error(f'{self.auth_token}  登录失败')
             return False
         except Exception as e:
-            logger.error(f'{self.account.address}  登录异常：{e}')
+            logger.error(f'{self.auth_token}  登录异常：{e}')
             return False
 
     async def check(self):
@@ -190,12 +189,12 @@ class Nebx:
             if len(res.text) > 200:
                 resdata = json.loads(self.decode(res.text))
                 score = resdata['score']
-                logger.success(f'{self.account.address}  积分{score}')
+                logger.success(f'{self.auth_token}  积分{score}')
                 return await self.checkA()
-            logger.error(f'{self.account.address}  检测积分失败')
+            logger.error(f'{self.auth_token}  检测积分失败')
             return False
         except Exception as e:
-            logger.error(f'{self.account.address}  登检测积分异常：{e}')
+            logger.error(f'{self.auth_token}  登检测积分异常：{e}')
             return False
 
     async def checkA(self):
@@ -206,29 +205,31 @@ class Nebx:
             res = await self.client.post('https://apiv1.nebx.io/user/check_award', data=f'sign={self.encode(info)}')
             if res.status_code == 200:
                 return True
-            logger.error(f'{self.account.address}  领取积分失败')
+            logger.error(f'{self.auth_token}  领取积分失败')
             return False
         except Exception as e:
-            logger.error(f'{self.account.address}  领取积分异常：{e}')
+            logger.error(f'{self.auth_token}  领取积分异常：{e}')
             return False
 
 
-async def do(semaphore, inviteCode, private_key, auth_token):
+async def do(semaphore, inviteCode, auth_token):
     async with semaphore:
         for _ in range(3):
-            if await Nebx(private_key, auth_token, inviteCode).get_auth_code():
+            if await Nebx(auth_token, inviteCode).get_auth_code():
                 break
 
 
 async def main(filePath, tread, inviteCode):
     semaphore = asyncio.Semaphore(int(tread))
     with open(filePath, 'r') as f:
-        task = [do(semaphore, inviteCode, account_line.strip().split('----')[1], account_line.strip().split('----')[2].strip()) for account_line in f]
+        task = [do(semaphore, inviteCode, account_line.strip()) for account_line in f]
     await asyncio.gather(*task)
 
 
 if __name__ == '__main__':
-    print('账户文件格式：地址----私钥----auth_token')
+    print('hdd.cm 推特低至2毛')
+    print('hdd.cm 推特低至2毛')
+    print('账户文件格式：auth_token一行一个放txt')
     _filePath = input("请输入账户文件路径：").strip()
     _tread = input("请输入并发数：").strip()
     _inviteCode = input("请输入大号邀请码：").strip()
