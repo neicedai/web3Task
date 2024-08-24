@@ -39,3 +39,6 @@
 
 9.[Lava](https://points.lavanet.xyz/)
 - 绑定推特
+
+10.[Nebx](https://nebx.io/login?v=87232230)
+- 推特授权登录
