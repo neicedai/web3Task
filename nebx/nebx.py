@@ -1,11 +1,7 @@
 import asyncio, sys
 import json
-import random
 import time
-
 from curl_cffi.requests import AsyncSession
-
-from web3 import AsyncWeb3
 from loguru import logger
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
@@ -107,13 +103,6 @@ class Twitter:
 
 class Nebx:
     def __init__(self, auth_token, inviteCode):
-        RPC_list = [
-            'https://arbitrum.llamarpc.com', 'https://arb1.arbitrum.io/rpc', 'https://rpc.ankr.com/arbitrum',
-            'https://1rpc.io/arb', 'https://arb-pokt.nodies.app', 'https://arbitrum.blockpi.network/v1/rpc/public',
-            'https://arbitrum-one.public.blastapi.io', 'https://arb-mainnet-public.unifra.io',
-            'https://arbitrum-one-rpc.publicnode.com', 'https://arbitrum.meowrpc.com', 'https://arbitrum.drpc.org'
-        ]
-        self.w3 = AsyncWeb3(AsyncWeb3.AsyncHTTPProvider(random.choice(RPC_list)))
         headers = {
             "Authorization": "Bearer cfcd208495d565ef66e7dff9f98764da-8bb56c77b9dded9f82d6b9ccc6dde965-ae26fe5b4ce38925e6f13a7167fed3ea",
             "Origin": "https://nebx.io",
@@ -227,6 +216,10 @@ async def main(filePath, tread, inviteCode):
 
 
 if __name__ == '__main__':
+    # 如果出现Failed to connect to twitter, com port，是网络问题
+    # 如果你本地使用的代理软件，请在代码修改第26行
+    # self.Twitter = AsyncSession(headers=defaulf_headers, cookies=defaulf_cookies, timeout=120, proxy="http://127.0.0.1:8888")')
+    # 8888是你代理软件的端口，自行查看你的代理软件设置修改
     print('hdd.cm 推特低至2毛')
     print('hdd.cm 推特低至2毛')
     print('账户文件格式：auth_token一行一个放txt')
