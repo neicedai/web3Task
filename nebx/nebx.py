@@ -233,5 +233,6 @@ if __name__ == '__main__':
     _filePath = input("请输入账户文件路径：").strip()
     _tread = input("请输入并发数：").strip()
     _inviteCode = input("请输入大号邀请码：").strip()
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(main(_filePath, _tread, _inviteCode))
 
