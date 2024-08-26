@@ -141,7 +141,10 @@ class Nebx:
                 if await self.Twitter.twitter_authorize(clientId, state, code_challenge):
                     logger.success(f'{self.auth_token}  推特授权成功')
                     return await self.login(uuid, clientId, state)
-            logger.error(f'{self.auth_token}  推特授权失败')
+                else:
+                    logger.error(f'{self.auth_token}  推特授权失败')
+                    return False
+            logger.error(f'{self.auth_token}  推特授权失败===网页返回错误{res.status_code}')
             return False
         except Exception as e:
             logger.error(f'{self.auth_token}  推特授权异常：{e}')
@@ -163,7 +166,7 @@ class Nebx:
                 if 'token' in resdata:
                     self.client.headers.update({"Authorization": f"Bearer {resdata['token']}"})
                     return await self.check()
-            logger.error(f'{self.auth_token}  登录失败')
+            logger.error(f'{self.auth_token}  登录失败===网页返回错误{res.status_code}')
             return False
         except Exception as e:
             logger.error(f'{self.auth_token}  登录异常：{e}')
@@ -180,7 +183,7 @@ class Nebx:
                 score = resdata['score']
                 logger.success(f'{self.auth_token}  积分{score}')
                 return await self.checkA()
-            logger.error(f'{self.auth_token}  检测积分失败')
+            logger.error(f'{self.auth_token}  检测积分失败===网页返回错误{res.status_code}')
             return False
         except Exception as e:
             logger.error(f'{self.auth_token}  登检测积分异常：{e}')
@@ -194,7 +197,7 @@ class Nebx:
             res = await self.client.post('https://apiv1.nebx.io/user/check_award', data=f'sign={self.encode(info)}')
             if res.status_code == 200:
                 return True
-            logger.error(f'{self.auth_token}  领取积分失败')
+            logger.error(f'{self.auth_token}  领取积分失败===网页返回错误{res.status_code}')
             return False
         except Exception as e:
             logger.error(f'{self.auth_token}  领取积分异常：{e}')
@@ -215,17 +218,24 @@ async def main(filePath, tread, inviteCode):
     await asyncio.gather(*task)
 
 
-if __name__ == '__main__':
-    # 如果出现Failed to connect to twitter, com port，是网络问题
-    # 如果你本地使用的代理软件，请在代码修改第26行
-    # self.Twitter = AsyncSession(headers=defaulf_headers, cookies=defaulf_cookies, timeout=120, proxy="http://127.0.0.1:8888")')
-    # 8888是你代理软件的端口，自行查看你的代理软件设置修改
-    print('hdd.cm 推特低至2毛')
-    print('hdd.cm 推特低至2毛')
+def menu():
     print('账户文件格式：auth_token一行一个放txt')
     _filePath = input("请输入账户文件路径：").strip()
     _tread = input("请输入并发数：").strip()
     _inviteCode = input("请输入大号邀请码：").strip()
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(main(_filePath, _tread, _inviteCode))
+
+
+if __name__ == '__main__':
+    _info = '''如果出现Failed to connect to twitter, com port，是网络问题
+    如果你本地使用的代理软件，请在代码修改第26行
+    self.Twitter = AsyncSession(headers=defaulf_headers, cookies=defaulf_cookies, timeout=120, proxy="http://127.0.0.1:8888")')
+    8888是你代理软件的端口，自行查看你的代理软件设置修改'''
+    print(_info)
+    print('hdd.cm 推特低至2毛')
+    print('hdd.cm 推特低至2毛')
+    while True:
+        menu()
+
 
