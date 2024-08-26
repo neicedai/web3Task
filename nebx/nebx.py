@@ -229,7 +229,6 @@ def menu():
     _inviteCode = input("请输入大号邀请码：").strip()
     _nstproxy_Channel = input('请输入nstproxy_通道ID:').strip()
     _nstproxy_Password = input('请输入nstproxy_密码:').strip()
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(main(_filePath, _tread, _inviteCode, _nstproxy_Channel, _nstproxy_Password))
 
 
