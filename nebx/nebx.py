@@ -1,5 +1,7 @@
 import asyncio, sys
 import json
+import random
+import string
 import time
 from curl_cffi.requests import AsyncSession
 from loguru import logger
@@ -102,13 +104,15 @@ class Twitter:
 
 
 class Nebx:
-    def __init__(self, auth_token, inviteCode):
+    def __init__(self, auth_token, inviteCode, nstproxy_Channel, nstproxy_Password):
         headers = {
             "Authorization": "Bearer cfcd208495d565ef66e7dff9f98764da-8bb56c77b9dded9f82d6b9ccc6dde965-ae26fe5b4ce38925e6f13a7167fed3ea",
             "Origin": "https://nebx.io",
             "Referer": "https://nebx.io/"
         }
-        self.client = AsyncSession(timeout=120, headers=headers, impersonate="chrome120")
+        session = ''.join(random.choices(string.digits + string.ascii_letters, k=10))
+        nstproxy = f"http://{nstproxy_Channel}-residential-country_ANY-r_5m-s_{session}:{nstproxy_Password}@gw-us.nstproxy.com:24125"
+        self.client = AsyncSession(timeout=120, headers=headers, impersonate="chrome120", proxy=nstproxy)
         self.Twitter = Twitter(auth_token)
         self.auth_token, self.inviteCode = auth_token, inviteCode
 
@@ -204,17 +208,17 @@ class Nebx:
             return False
 
 
-async def do(semaphore, inviteCode, auth_token):
+async def do(semaphore, inviteCode, auth_token, nstproxy_Channel, nstproxy_Password):
     async with semaphore:
         for _ in range(3):
-            if await Nebx(auth_token, inviteCode).get_auth_code():
+            if await Nebx(auth_token, inviteCode, nstproxy_Channel, nstproxy_Password).get_auth_code():
                 break
 
 
-async def main(filePath, tread, inviteCode):
+async def main(filePath, tread, inviteCode, nstproxy_Channel, nstproxy_Password):
     semaphore = asyncio.Semaphore(int(tread))
     with open(filePath, 'r') as f:
-        task = [do(semaphore, inviteCode, account_line.strip()) for account_line in f]
+        task = [do(semaphore, inviteCode, account_line.strip(), nstproxy_Channel, nstproxy_Password) for account_line in f]
     await asyncio.gather(*task)
 
 
@@ -223,15 +227,17 @@ def menu():
     _filePath = input("请输入账户文件路径：").strip()
     _tread = input("请输入并发数：").strip()
     _inviteCode = input("请输入大号邀请码：").strip()
+    _nstproxy_Channel = input('请输入nstproxy_通道ID:').strip()
+    _nstproxy_Password = input('请输入nstproxy_密码:').strip()
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    asyncio.run(main(_filePath, _tread, _inviteCode))
+    asyncio.run(main(_filePath, _tread, _inviteCode, _nstproxy_Channel, _nstproxy_Password))
 
 
 if __name__ == '__main__':
-    _info = '''如果出现Failed to connect to twitter, com port，是网络问题
-    如果你本地使用的代理软件，请在代码修改第26行
-    self.Twitter = AsyncSession(headers=defaulf_headers, cookies=defaulf_cookies, timeout=120, proxy="http://127.0.0.1:8888")')
-    8888是你代理软件的端口，自行查看你的代理软件设置修改'''
+    _info = '''如果出现Failed to connect to twitter, com port，是网络问题，自己想办法，不行国外VPS
+    代理：https://app.nstproxy.com/register?i=7JunWz
+    充电钱，新建个频道，选1.8U的住宅代理，需要通道ID和密码
+    '''
     print(_info)
     print('hdd.cm 推特低至2毛')
     print('hdd.cm 推特低至2毛')
